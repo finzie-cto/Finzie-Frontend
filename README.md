@@ -43,4 +43,4 @@
 ## Contact
 - Aryan Trivedi(+91 6265 973 799)
 - Ankit Anand(+91 76679 93205)
-- Chitransh Anand(+91 6394913544) contact for tech related doubts
+- Sam Sepiol(+91 6394913544) contact for tech related doubts
