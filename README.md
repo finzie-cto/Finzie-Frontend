@@ -7,7 +7,7 @@
 4. connect your external device or open simulator
 5. flutter run  
 ## App overview 
-1. Finance tracker app
+1. Expense tracker app
 2. Users can create an account then users have to submit their otp to login
 3. Users have to enter their salary info
 4. Users can login
