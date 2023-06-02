@@ -37,8 +37,8 @@
 6. There are several flutter nocode platforms such as Flutterflow, FlutterViz, Nowa and blup.
 7. There are also platforms that directly convert figma design to flutter frontend code such as Dhiwise, Function12
 8. If you use these above platforms it will add to bonus points because we believe speed is the key to move forward
-9. When completed add whole screenshots to the readme as well as demo app
-10. Add your submission to this [form](https://forms.gle/tGULYAZRo7hVFGAt5)
+9. When completed add whole screenshots to the readme as well as demo recording
+11. Add your submission to this [form](https://forms.gle/tGULYAZRo7hVFGAt5)
 
 ## Contact
 - Aryan Trivedi(+91 6265 973 799)
