@@ -26,7 +26,7 @@
 2. clone the repo
 3. flutter clean and then flutter run
 4. to connect to mongodb db use these creds to login into mongodb console:- email: finziecto@gmail.com password: SamAltman123#
-5. digital ocean backend is hosted here: https://finzie-gj1a.onrender.com
+5. render backend is hosted here: https://finzie-gj1a.onrender.com
 
 ## Task for hackathon
 1. Whole backend has been completed so only frontend needs to be done
