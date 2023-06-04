@@ -60,16 +60,6 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-void initHome() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('phone');
-  final response =
-      await http.get(Uri.parse('${Constants.uri}/api/home?phone=$token'));
-  _HomeScreenState().initHomeHelper(response);
-  // print('Nush');
-  // print(response.body);
-}
-
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String debit = "0";
   String credit = "0";
@@ -354,21 +344,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void initHomeHelper(var response) async {
-    // print('Nush');
-    // print(jsonDecode(response.body));
-    // print(_expenseOption);
-    setState(() {
-      debit = jsonDecode(response.body)['debit'].toString();
-      credit = jsonDecode(response.body)['credit'].toString();
-      last = jsonDecode(response.body)['last'].toString();
-      print(_expenseOption.toString());
-      if (_expenseOption.contains("Today")) {
-        _expensesValue = jsonDecode(response.body)['debit'] as double;
-      }
-    });
-  }
-
   void getPhone() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('phone');
@@ -405,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
-  void initHome2() async {
+  void initHome() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('phone');
     final response =
@@ -482,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     readAllSms();
     getSalaryData();
-    initHome2();
+    initHome();
     setState(() {
       _expensesValue = double.parse(debit);
     });
@@ -837,7 +812,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       "Today's Expenses": double.parse(debit),
       "Today's Limit": limit,
     };
-    // initHome();
     if (transactions.length == 0) {
       getPrevHelper();
     }
@@ -924,7 +898,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           setState(() {
                             _expensesValue = value as double;
                             if (_expenseOption.contains("Today")) {
-                              // initHome();
                               _expensesValue = debit as double;
                             } else if (_expenseOption.contains("Week")) {
                               getWeekExpense();
