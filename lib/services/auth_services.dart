@@ -644,7 +644,6 @@ class AuthService {
           print(response.body);
           showSnackBar(context, "Transactions stored successfully");
           HomeScreen().getPrevTransactions(context);
-          initHome();
         },
       );
     } catch (e) {
