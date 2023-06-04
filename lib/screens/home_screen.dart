@@ -337,10 +337,53 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         }
       }
     }
+
+    initHome();
+    setState(() {
+      _expensesValue = double.parse(debit);
+    });
+
     if (backends.length != 0) {
       // ignore: use_build_context_synchronously
-      AuthService().postManyTransactions(context: context, backends: backends);
-      getPrevHelper();
+      List<Transaction> trans = await AuthService()
+          .postManyTransactions(context: context, backends: backends);
+      int delta = 0;
+      for (int i = 0; i < trans.length; i++) {
+        DateTime currentDate = DateTime.now();
+        int day = currentDate.day;
+        int month = currentDate.month;
+        int year = currentDate.year;
+        String today = '$month/$day/$year';
+        if (trans[i].date == today) {
+          if (trans[i].amount < 0) delta += trans[i].amount;
+        }
+      }
+      var _transactions = transactions.reversed.toList();
+      _transactions.addAll(trans);
+      _transactions = _transactions.reversed.toList();
+
+      final response =
+          await http.get(Uri.parse('${Constants.uri}/api/home?phone=$token'));
+      setState(() {
+        debit = jsonDecode(response.body)['debit'].toString();
+        credit = jsonDecode(response.body)['credit'].toString();
+        last = jsonDecode(response.body)['last'].toString();
+        if (_expenseOption.contains("Today"))
+          _expensesValue = double.parse(debit);
+      });
+
+      print(_transactions);
+      print(delta);
+      print(debit);
+      print(_expensesValue);
+
+      // main
+      setState(() {
+        if (_transactions.length > 10) {
+          _transactions = _transactions.sublist(0, 10);
+        }
+        transactions = _transactions;
+      });
     }
   }
 
@@ -385,6 +428,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     String? token = prefs.getString('phone');
     final response =
         await http.get(Uri.parse('${Constants.uri}/api/home?phone=$token'));
+    // maybe
     setState(() {
       debit = jsonDecode(response.body)['debit'].toString();
       credit = jsonDecode(response.body)['credit'].toString();
@@ -457,10 +501,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     readAllSms();
     getSalaryData();
-    initHome();
-    setState(() {
-      _expensesValue = double.parse(debit);
-    });
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
@@ -487,6 +527,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       //do your stuff
       getSalaryData();
       getPrevHelper();
+      initHome();
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('phone');
       final response =
@@ -572,12 +613,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             if (trans[i].amount < 0) delta += trans[i].amount;
           }
         }
-        // 6 7 8
-        // 5 4 3 2 1
         var _transactions = transactions.reversed.toList();
         _transactions.addAll(trans);
         _transactions = _transactions.reversed.toList();
 
+        // this is working
         setState(() {
           debit = (int.parse(debit) - delta).toString();
           if (_expenseOption.contains("Today")) {
