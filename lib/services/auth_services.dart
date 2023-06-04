@@ -582,6 +582,17 @@ class AuthService {
       print(jsonDecode(response.body)['category']);
       print(jsonDecode(response.body)['time']);
 
+      // ignore: use_build_context_synchronously
+      httpErrorHandle(
+        response: response,
+        context: context,
+        onSuccess: () {
+          showSnackBar(context, "Transaction stored successfully");
+          print('Nush<3Chiti');
+          // initHome();
+        },
+      );
+
       if (int.parse(jsonDecode(response.body)['credit']) > 0) {
         var _transaction = Transaction(jsonDecode(response.body)['_id'],
             title: 'Credited',
@@ -633,6 +644,7 @@ class AuthService {
           print(response.body);
           showSnackBar(context, "Transactions stored successfully");
           HomeScreen().getPrevTransactions(context);
+          initHome();
         },
       );
     } catch (e) {

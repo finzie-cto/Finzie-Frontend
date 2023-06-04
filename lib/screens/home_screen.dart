@@ -60,6 +60,16 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+void initHome() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('phone');
+  final response =
+      await http.get(Uri.parse('${Constants.uri}/api/home?phone=$token'));
+  _HomeScreenState().initHomeHelper(response);
+  // print('Nush');
+  // print(response.body);
+}
+
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String debit = "0";
   String credit = "0";
@@ -109,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       String tempMessage = message;
       message = message.toLowerCase();
-      print(tempMessage);
+      // print(tempMessage);
       String amount = "";
       int value = 2147483647;
 
@@ -130,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               message.contains("decreased") ||
               message.contains("minus") ||
               message.contains("retracted"))) {
-        print('debit');
+        // print('debit');
         if (message.contains("rs")) {
           for (int i = 0; i < message.length; i++) {
             if (message[i] == 'r' && message[i + 1] == 's') {
@@ -194,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               message.contains("confirmed") ||
               message.contains("increased") ||
               message.contains("added"))) {
-        print("credit");
+        // print("credit");
         if (message.contains("rs")) {
           for (int i = 0; i < message.length; i++) {
             if (message[i] == 'r' && message[i + 1] == 's') {
@@ -288,10 +298,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (message.date!.millisecondsSinceEpoch >
           int.parse(jsonDecode(response.body)['data']['last'] ?? '0') + 10000) {
         // null check added
-        print(int.parse(jsonDecode(response.body)['data']['last'] ??
-            '0')); // null check added
-        print(
-            'From ${message.address} at ${message.date?.millisecondsSinceEpoch}: ${message.body}');
+        // print(int.parse(jsonDecode(response.body)['data']['last'] ??
+        // '0')); // null check added
+        // print(
+        // 'From ${message.address} at ${message.date?.millisecondsSinceEpoch}: ${message.body}');
 
         int value = getTransaction(message.body.toString());
         if (value != 2147483647) {
@@ -344,19 +354,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void initHome() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('phone');
-    final response =
-        await http.get(Uri.parse('${Constants.uri}/api/home?phone=$token'));
-    // print(response.body);
+  void initHomeHelper(var response) async {
+    // print('Nush');
+    // print(jsonDecode(response.body));
+    // print(_expenseOption);
     setState(() {
       debit = jsonDecode(response.body)['debit'].toString();
       credit = jsonDecode(response.body)['credit'].toString();
       last = jsonDecode(response.body)['last'].toString();
-      if (_expenseOption.contains("Today"))
-        _expensesValue = double.parse(debit);
-      // print(debit + ' ' + credit + ' ' + last);
+      print(_expenseOption.toString());
+      if (_expenseOption.contains("Today")) {
+        _expensesValue = jsonDecode(response.body)['debit'] as double;
+      }
     });
   }
 
@@ -383,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void func(var temp) async {
-    print('huheue');
+    // print('huheue');
     Transaction gg = await temp;
     var _transactions = transactions.reversed.toList();
     _transactions.add(gg);
@@ -396,21 +405,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
+  void initHome2() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('phone');
+    final response =
+        await http.get(Uri.parse('${Constants.uri}/api/home?phone=$token'));
+    setState(() {
+      debit = jsonDecode(response.body)['debit'].toString();
+      credit = jsonDecode(response.body)['credit'].toString();
+      last = jsonDecode(response.body)['last'].toString();
+      if (_expenseOption.contains("Today"))
+        _expensesValue = double.parse(debit);
+    });
+  }
+
   @override
   void initState() {
     getPhone();
     telephon.listenIncomingSms(
       onNewMessage: (telephony.SmsMessage message) {
-        print(message.address); //+977981******67, sender nubmer
-        print(message.body); //sms text
-        print(message.date); //1659690242000, timestamp
+        // print(message.address); //+977981******67, sender nubmer
+        // print(message.body); //sms text
+        // print(message.date); //1659690242000, timestamp
         // print("huehueheuheuheuhe");
         int value = 0;
         try {
-          print(value);
+          // print(value);
           value = getTransaction(message.body.toString());
         } catch (e) {
-          print(e.toString());
+          // print(e.toString());
         }
         var temp;
         if (value != 2147483647) {
@@ -435,11 +458,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 credit: "0",
                 timestamp: message.date.toString(),
                 category: "NA");
+            print('Financial');
             setState(() {
               debit = (int.parse(debit) - value).toString();
+              if (_expenseOption.contains("Today")) {
+                _expensesValue = double.parse(debit);
+              }
             });
           }
-          print(temp);
+          // print(temp);
           func(temp);
         }
         setState(() {
@@ -454,8 +481,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
 
     readAllSms();
-    initHome();
     getSalaryData();
+    initHome2();
     setState(() {
       _expensesValue = double.parse(debit);
     });
@@ -506,13 +533,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             (int.tryParse(jsonDecode(response.body)['data']['last'] ?? '0') ??
                     0) +
                 10000) {
-          print(int.tryParse(jsonDecode(response.body)['data']['last'] ?? '') ??
-              0);
-          print(
-              'From ${message.address} at ${(message.date?.millisecondsSinceEpoch ?? 0)}: ${message.body}');
+          // print(int.tryParse(jsonDecode(response.body)['data']['last'] ?? '') ??
+          // 0);
+          // print(
+          // 'From ${message.address} at ${(message.date?.millisecondsSinceEpoch ?? 0)}: ${message.body}');
 
           int value = getTransaction(message.body.toString());
-          print(value);
+          // print(value);
           if (value != 2147483647) {
             TransactionBackend backend = TransactionBackend(
                 debit: debit,
@@ -602,7 +629,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final debitController = TextEditingController();
         final creditController = TextEditingController();
         final categoryController = TextEditingController();
-        print(amount);
+        // print(amount);
         if (amount > 0) {
           creditController.text = amount.toString();
           debitController.text = "0";
@@ -625,9 +652,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 phone: phone);
             int index =
                 transactions.indexWhere((element) => element._id == _id);
-            print(index);
+            // print(index);
             if (debitController.text != "0") {
-              print(debitController.text);
+              // print(debitController.text);
               setState(() {
                 transactions[index] = Transaction(_id,
                     title: "Debited",
@@ -789,14 +816,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void prin() {
     for (int i = 0; i < transactions.length; i++) {
-      print(transactions[i].title + ' ' + transactions[i].amount.toString());
+      // print(transactions[i].title + ' ' + transactions[i].amount.toString());
     }
   }
 
   void getPrevHelper() async {
     List<Transaction> _transactions =
         await HomeScreen().getPrevTransactions(context);
-    print('${_transactions[0].title} ${_transactions[0].amount}');
+    // print('${_transactions[0].title} ${_transactions[0].amount}');
     setState(() {
       transactions = _transactions;
     });
@@ -810,7 +837,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       "Today's Expenses": double.parse(debit),
       "Today's Limit": limit,
     };
-    initHome();
+    // initHome();
     if (transactions.length == 0) {
       getPrevHelper();
     }
@@ -895,8 +922,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         value: _expenseOption,
                         onChanged: (value) {
                           setState(() {
-                            _expenseOption = value as String;
+                            _expensesValue = value as double;
                             if (_expenseOption.contains("Today")) {
+                              // initHome();
+                              _expensesValue = debit as double;
                             } else if (_expenseOption.contains("Week")) {
                               getWeekExpense();
                             } else {
