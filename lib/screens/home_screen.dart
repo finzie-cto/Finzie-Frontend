@@ -556,10 +556,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
         }
       }
+      print(backends);
       if (backends.length != 0) {
         // ignore: use_build_context_synchronously
-        AuthService()
+        List<Transaction> trans = await AuthService()
             .postManyTransactions(context: context, backends: backends);
+        int delta = 0;
+        for (int i = 0; i < trans.length; i++) {
+          DateTime currentDate = DateTime.now();
+          int day = currentDate.day;
+          int month = currentDate.month;
+          int year = currentDate.year;
+          String today = '$month/$day/$year';
+          if (trans[i].date == today) {
+            if (trans[i].amount < 0) delta += trans[i].amount;
+          }
+        }
+        // 6 7 8
+        // 5 4 3 2 1
+        var _transactions = transactions.reversed.toList();
+        _transactions.addAll(trans);
+        _transactions = _transactions.reversed.toList();
+
+        setState(() {
+          debit = (int.parse(debit) - delta).toString();
+          if (_expenseOption.contains("Today")) {
+            _expensesValue = double.parse((int.parse(debit)).toString());
+          }
+          if (_transactions.length > 10) {
+            _transactions = _transactions.sublist(0, 10);
+          }
+          transactions = _transactions;
+        });
       }
     }
   }

@@ -619,7 +619,7 @@ class AuthService {
     return transaction;
   }
 
-  void postManyTransactions({
+  Future<List<Transaction>> postManyTransactions({
     required BuildContext context,
     required List<TransactionBackend> backends,
   }) async {
@@ -643,11 +643,36 @@ class AuthService {
         onSuccess: () {
           print(response.body);
           showSnackBar(context, "Transactions stored successfully");
-          HomeScreen().getPrevTransactions(context);
         },
       );
+
+      List res = json.decode(response.body) as List<dynamic>;
+      List<Transaction> _transactions = [];
+      for (int i = 0; i < res.length; i++) {
+        var map = res[i] as Map<String, dynamic>;
+        if ((map['debit']) != "0" && map['debit'] != "0.0") {
+          _transactions.add(
+            Transaction(map['_id'].toString(),
+                title: "Debited",
+                amount: -int.parse(map['debit']),
+                date: (map['date']).toString(),
+                category: map['category'].toString(),
+                time: map['time'].toString()),
+          );
+        } else {
+          // print(map['date'].toString());
+          _transactions.add(Transaction(map['_id'].toString(),
+              title: "Credited",
+              amount: int.parse(map['credit']),
+              date: (map['date']).toString(),
+              category: map['category'].toString(),
+              time: map['time'].toString()));
+        }
+      }
+      return _transactions;
     } catch (e) {
       showSnackBar(context, e.toString());
     }
+    return [];
   }
 }
