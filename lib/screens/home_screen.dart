@@ -347,7 +347,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // ignore: use_build_context_synchronously
       List<Transaction> trans = await AuthService()
           .postManyTransactions(context: context, backends: backends);
-      int delta = 0;
+      int debitDelta = 0;
+      int creditDelta = 0;
       for (int i = 0; i < trans.length; i++) {
         DateTime currentDate = DateTime.now();
         int day = currentDate.day;
@@ -355,30 +356,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         int year = currentDate.year;
         String today = '$month/$day/$year';
         if (trans[i].date == today) {
-          if (trans[i].amount < 0) delta += trans[i].amount;
+          if (trans[i].amount < 0)
+            debitDelta += trans[i].amount;
+          else
+            creditDelta += trans[i].amount;
         }
       }
       var _transactions = transactions.reversed.toList();
       _transactions.addAll(trans);
       _transactions = _transactions.reversed.toList();
 
-      final response =
-          await http.get(Uri.parse('${Constants.uri}/api/home?phone=$token'));
-      setState(() {
-        debit = jsonDecode(response.body)['debit'].toString();
-        credit = jsonDecode(response.body)['credit'].toString();
-        last = jsonDecode(response.body)['last'].toString();
-        if (_expenseOption.contains("Today"))
-          _expensesValue = double.parse(debit);
-      });
-
       print(_transactions);
-      print(delta);
-      print(debit);
-      print(_expensesValue);
+      print(debitDelta);
+      print(creditDelta);
 
       // main
       setState(() {
+        debit = (int.parse(debit) - debitDelta).toString();
+        credit = (int.parse(credit) + creditDelta).toString();
+        if (_expenseOption.contains("Today")) {
+          _expensesValue = double.parse(debit);
+        }
         if (_transactions.length > 10) {
           _transactions = _transactions.sublist(0, 10);
         }
@@ -602,7 +600,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         // ignore: use_build_context_synchronously
         List<Transaction> trans = await AuthService()
             .postManyTransactions(context: context, backends: backends);
-        int delta = 0;
+        int debitDelta = 0;
+        int creditDelta = 0;
         for (int i = 0; i < trans.length; i++) {
           DateTime currentDate = DateTime.now();
           int day = currentDate.day;
@@ -610,7 +609,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           int year = currentDate.year;
           String today = '$month/$day/$year';
           if (trans[i].date == today) {
-            if (trans[i].amount < 0) delta += trans[i].amount;
+            if (trans[i].amount < 0)
+              debitDelta += trans[i].amount;
+            else
+              creditDelta += trans[i].amount;
           }
         }
         var _transactions = transactions.reversed.toList();
@@ -619,7 +621,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
         // this is working
         setState(() {
-          debit = (int.parse(debit) - delta).toString();
+          debit = (int.parse(debit) - debitDelta).toString();
+          credit = (int.parse(credit) + creditDelta).toString();
           if (_expenseOption.contains("Today")) {
             _expensesValue = double.parse((int.parse(debit)).toString());
           }
