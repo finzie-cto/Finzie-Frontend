@@ -92,7 +92,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     'hdfc',
     'sbi',
     'icici',
+    'sbi',
     'kotak',
+    'axis',
+    'bob',
+    'idbi',
+    'pnb',
+    'canara',
+    'yes',
     'jupiter',
     'paytm',
     'federal',
@@ -259,6 +266,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String phone = "";
   telephony.Telephony telephon = telephony.Telephony.instance;
 
+  bool checkBank(String address) {
+    for (int i = 0; i < bankNames.length; i++) {
+      if (address.contains(bankNames[i])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void readAllSms() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('phone');
@@ -285,55 +301,58 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     List<TransactionBackend> backends = [];
 
     for (SmsMessage message in messages) {
-      if (message.date!.millisecondsSinceEpoch >
-          int.parse(jsonDecode(response.body)['data']['last'] ?? '0') + 10000) {
-        // null check added
-        // print(int.parse(jsonDecode(response.body)['data']['last'] ??
-        // '0')); // null check added
-        // print(
-        // 'From ${message.address} at ${message.date?.millisecondsSinceEpoch}: ${message.body}');
+      if (true || checkBank(message.address as String)) {
+        if (message.date!.millisecondsSinceEpoch >
+            int.parse(jsonDecode(response.body)['data']['last'] ?? '0') +
+                10000) {
+          // null check added
+          // print(int.parse(jsonDecode(response.body)['data']['last'] ??
+          // '0')); // null check added
+          // print(
+          // 'From ${message.address} at ${message.date?.millisecondsSinceEpoch}: ${message.body}');
 
-        int value = getTransaction(message.body.toString());
-        if (value != 2147483647) {
-          TransactionBackend backend = TransactionBackend(
-              debit: debit,
-              credit: credit,
-              category: "category",
-              timestamp: "timestamp",
-              phone: phone);
-          if (mes == "") mes = message.body as String;
-          if (value > 0) {
-            backend = TransactionBackend(
-                debit: "0",
-                credit: value.toString(),
-                category: "NA",
-                timestamp:
-                    (message.date?.millisecondsSinceEpoch ?? 0).toString(),
+          int value = getTransaction(message.body.toString());
+          if (value != 2147483647) {
+            TransactionBackend backend = TransactionBackend(
+                debit: debit,
+                credit: credit,
+                category: "category",
+                timestamp: "timestamp",
                 phone: phone);
-            setState(() {
-              // credit = (int.parse(credit) + value).toString();
-              String tempLast = getTransaction(mes.toString()).toString();
-              if (tempLast != "2147483647") {
-                last = tempLast;
-              }
-            });
-          } else if (value < 0) {
-            backend = TransactionBackend(
-                debit: (-value).toString(),
-                credit: "0",
-                category: "NA",
-                timestamp:
-                    (message.date?.millisecondsSinceEpoch ?? 0).toString(),
-                phone: phone);
-            setState(() {
-              // debit = (int.parse(debit) - value).toString();
-              String tempLast = getTransaction(mes.toString()).toString();
-              if (tempLast != "2147483647") {
-                last = tempLast;
-              }
-            });
+            if (mes == "") mes = message.body as String;
+            if (value > 0) {
+              backend = TransactionBackend(
+                  debit: "0",
+                  credit: value.toString(),
+                  category: "NA",
+                  timestamp:
+                      (message.date?.millisecondsSinceEpoch ?? 0).toString(),
+                  phone: phone);
+              setState(() {
+                // credit = (int.parse(credit) + value).toString();
+                String tempLast = getTransaction(mes.toString()).toString();
+                if (tempLast != "2147483647") {
+                  last = tempLast;
+                }
+              });
+            } else if (value < 0) {
+              backend = TransactionBackend(
+                  debit: (-value).toString(),
+                  credit: "0",
+                  category: "NA",
+                  timestamp:
+                      (message.date?.millisecondsSinceEpoch ?? 0).toString(),
+                  phone: phone);
+              setState(() {
+                // debit = (int.parse(debit) - value).toString();
+                String tempLast = getTransaction(mes.toString()).toString();
+                if (tempLast != "2147483647") {
+                  last = tempLast;
+                }
+              });
+            }
+            backends.add(backend);
           }
-          backends.add(backend);
         }
       }
     }
@@ -445,54 +464,56 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         // print(message.body); //sms text
         // print(message.date); //1659690242000, timestamp
         // print("huehueheuheuheuhe");
-        int value = 0;
-        try {
-          // print(value);
-          value = getTransaction(message.body.toString());
-        } catch (e) {
-          // print(e.toString());
-        }
-        var temp;
-        if (value != 2147483647) {
-          var transaction = Transaction('',
-              amount: 0, category: '', date: '', time: '', title: '');
-          if (value > 0) {
-            temp = AuthService().postTransaction(
-                context: context,
-                phone: phone,
-                debit: "0",
-                credit: value.toString(),
-                timestamp: message.date.toString(),
-                category: "NA");
-            setState(() {
-              credit = (int.parse(credit) + value).toString();
-            });
-          } else if (value < 0) {
-            temp = AuthService().postTransaction(
-                context: context,
-                phone: phone,
-                debit: (-value).toString(),
-                credit: "0",
-                timestamp: message.date.toString(),
-                category: "NA");
-            print('Financial');
-            setState(() {
-              debit = (int.parse(debit) - value).toString();
-              if (_expenseOption.contains("Today")) {
-                _expensesValue = double.parse(debit);
-              }
-            });
+        if (true || checkBank(message.address as String)) {
+          int value = 0;
+          try {
+            // print(value);
+            value = getTransaction(message.body.toString());
+          } catch (e) {
+            // print(e.toString());
           }
-          // print(temp);
-          func(temp);
-        }
-        setState(() {
-          sms = message.body.toString();
-          String tempLast = value.toString();
-          if (tempLast != "2147483647") {
-            last = tempLast;
+          var temp;
+          if (value != 2147483647) {
+            var transaction = Transaction('',
+                amount: 0, category: '', date: '', time: '', title: '');
+            if (value > 0) {
+              temp = AuthService().postTransaction(
+                  context: context,
+                  phone: phone,
+                  debit: "0",
+                  credit: value.toString(),
+                  timestamp: message.date.toString(),
+                  category: "NA");
+              setState(() {
+                credit = (int.parse(credit) + value).toString();
+              });
+            } else if (value < 0) {
+              temp = AuthService().postTransaction(
+                  context: context,
+                  phone: phone,
+                  debit: (-value).toString(),
+                  credit: "0",
+                  timestamp: message.date.toString(),
+                  category: "NA");
+              print('Financial');
+              setState(() {
+                debit = (int.parse(debit) - value).toString();
+                if (_expenseOption.contains("Today")) {
+                  _expensesValue = double.parse(debit);
+                }
+              });
+            }
+            // print(temp);
+            func(temp);
           }
-        });
+          setState(() {
+            sms = message.body.toString();
+            String tempLast = value.toString();
+            if (tempLast != "2147483647") {
+              last = tempLast;
+            }
+          });
+        }
       },
       listenInBackground: false,
     );
@@ -543,55 +564,57 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       List<TransactionBackend> backends = [];
 
       for (SmsMessage message in messages) {
-        if ((message.date?.millisecondsSinceEpoch ?? 0) >
-            (int.tryParse(jsonDecode(response.body)['data']['last'] ?? '0') ??
-                    0) +
-                10000) {
-          // print(int.tryParse(jsonDecode(response.body)['data']['last'] ?? '') ??
-          // 0);
-          // print(
-          // 'From ${message.address} at ${(message.date?.millisecondsSinceEpoch ?? 0)}: ${message.body}');
+        if (true || checkBank(message.address as String)) {
+          if ((message.date?.millisecondsSinceEpoch ?? 0) >
+              (int.tryParse(jsonDecode(response.body)['data']['last'] ?? '0') ??
+                      0) +
+                  10000) {
+            // print(int.tryParse(jsonDecode(response.body)['data']['last'] ?? '') ??
+            // 0);
+            // print(
+            // 'From ${message.address} at ${(message.date?.millisecondsSinceEpoch ?? 0)}: ${message.body}');
 
-          int value = getTransaction(message.body.toString());
-          // print(value);
-          if (value != 2147483647) {
-            TransactionBackend backend = TransactionBackend(
-                debit: debit,
-                credit: credit,
-                category: "category",
-                timestamp: "timestamp",
-                phone: phone);
-            if (mes == "") mes = message.body as String;
-            if (value > 0) {
-              backend = TransactionBackend(
-                  debit: "0",
-                  credit: value.toString(),
-                  category: "NA",
-                  timestamp:
-                      (message.date?.millisecondsSinceEpoch ?? 0).toString(),
+            int value = getTransaction(message.body.toString());
+            // print(value);
+            if (value != 2147483647) {
+              TransactionBackend backend = TransactionBackend(
+                  debit: debit,
+                  credit: credit,
+                  category: "category",
+                  timestamp: "timestamp",
                   phone: phone);
-              setState(() {
-                String tempLast = getTransaction(mes.toString()).toString();
-                if (tempLast != "2147483647") {
-                  last = tempLast;
-                }
-              });
-            } else if (value < 0) {
-              backend = TransactionBackend(
-                  debit: (-value).toString(),
-                  credit: "0",
-                  category: "NA",
-                  timestamp:
-                      (message.date?.millisecondsSinceEpoch ?? 0).toString(),
-                  phone: phone);
-              setState(() {
-                String tempLast = getTransaction(mes.toString()).toString();
-                if (tempLast != "2147483647") {
-                  last = tempLast;
-                }
-              });
+              if (mes == "") mes = message.body as String;
+              if (value > 0) {
+                backend = TransactionBackend(
+                    debit: "0",
+                    credit: value.toString(),
+                    category: "NA",
+                    timestamp:
+                        (message.date?.millisecondsSinceEpoch ?? 0).toString(),
+                    phone: phone);
+                setState(() {
+                  String tempLast = getTransaction(mes.toString()).toString();
+                  if (tempLast != "2147483647") {
+                    last = tempLast;
+                  }
+                });
+              } else if (value < 0) {
+                backend = TransactionBackend(
+                    debit: (-value).toString(),
+                    credit: "0",
+                    category: "NA",
+                    timestamp:
+                        (message.date?.millisecondsSinceEpoch ?? 0).toString(),
+                    phone: phone);
+                setState(() {
+                  String tempLast = getTransaction(mes.toString()).toString();
+                  if (tempLast != "2147483647") {
+                    last = tempLast;
+                  }
+                });
+              }
+              backends.add(backend);
             }
-            backends.add(backend);
           }
         }
       }
